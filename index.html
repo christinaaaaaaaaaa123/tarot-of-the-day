@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#171326">
+  <title>Tarot of the Day</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 30px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f7eddc;
+      background:
+        radial-gradient(ellipse at top, #403052 0%, #211a32 45%, #100e1b 100%);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+    }
+
+    .stars {
+      color: #d7b875;
+      font-size: 20px;
+      letter-spacing: 10px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 8vw, 43px);
+      font-weight: normal;
+      color: #f0d9a0;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      color: #c5b8d4;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      margin-bottom: 28px;
+    }
+
+    .card-frame {
+      display: inline-block;
+      padding: 9px;
+      border: 1px solid #b99a5d;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #c9a765, #5f472e, #c9a765);
+      box-shadow: 0 15px 45px #08071199;
+    }
+
+    #cardImage {
+      display: block;
+      width: min(68vw, 270px);
+      height: auto;
+      min-height: 180px;
+      max-height: 410px;
+      object-fit: contain;
+      border-radius: 4px;
+      background: #20192a;
+    }
+
+    #cardImage.hidden {
+      display: none;
+    }
+
+    .image-error {
+      display: none;
+      width: min(68vw, 270px);
+      min-height: 180px;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #e4cc96;
+      font-size: 14px;
+    }
+
+    .image-error.visible {
+      display: flex;
+    }
+
+    .eyebrow {
+      color: #d7b875;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      margin-top: 28px;
+    }
+
+    h2 {
+      font-size: 29px;
+      font-weight: normal;
+      color: #f0d9a0;
+      margin: 10px 0;
+    }
+
+    #keywords {
+      color: #cbb7df;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.8;
+      letter-spacing: 1px;
+    }
+
+    .meaning {
+      margin: 18px auto 0;
+      max-width: 370px;
+      font-size: 18px;
+      line-height: 1.7;
+      color: #f4eadc;
+    }
+
+    button {
+      width: 100%;
+      max-width: 350px;
+      margin-top: 28px;
+      padding: 16px 20px;
+      border: 1px solid #d5b775;
+      border-radius: 30px;
+      background: #c3a263;
+      color: #21182c;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: transform .2s, background .2s;
+    }
+
+    button:hover {
+      background: #e4ca8e;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .note {
+      color: #a99bb9;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.7;
+      margin-top: 24px;
+    }
+
+    .credit {
+      margin-top: 12px;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      color: #897b9b;
+    }
+
+    .credit a {
+      color: #c9b47f;
+    }
+
+    @media (max-width: 380px) {
+      .meaning { font-size: 16px; }
+      h2 { font-size: 25px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <div class="stars">✦ ✧ ✦</div>
+    <h1>Tarot of the Day</h1>
+    <p class="subtitle">A moment of reflection. A message for you.</p>
+
+    <div class="card-frame">
+      <img id="cardImage" alt="Tarot card">
+      <div id="imageError" class="image-error">
+        The card image could not load. Please check your internet connection.
+      </div>
+    </div>
+
+    <div class="eyebrow">YOUR CARD</div>
+    <h2 id="cardName">The Fool</h2>
+    <div id="keywords">New beginnings · Possibility · Trust</div>
+    <p class="meaning" id="meaning">
+      Every journey begins with a single step. Stay open to new experiences
+      and trust yourself as you enter the unknown.
+    </p>
+
+    <button id="drawButton" type="button">✦ DRAW ANOTHER CARD ✦</button>
+
+    <p class="note">
+      Take this card as an invitation to reflect, not as a fixed prediction
+      of your future.
+    </p>
+
+    <div class="credit">
+      Classic Rider–Waite–Smith imagery, originally published in 1909.
+      Images provided by
+      <a href="https://github.com/sixseeds/tarot-api" target="_blank" rel="noopener">
+        Tarot API
+      </a>.
+    </div>
+  </main>
+
+  <script>
+    const meanings = {
+      "The Fool": ["New beginnings · Freedom · Trust",
+        "A new journey is waiting to begin. Stay curious, embrace possibility, and take your next step with an open heart."],
+      "The Magician": ["Action · Skill · Manifestation",
+        "You have more resources than you realize. Focus your energy and turn one promising idea into meaningful action."],
+      "The High Priestess": ["Intuition · Mystery · Inner wisdom",
+        "Quiet the noise around you and listen to your inner voice. Not every answer needs to be found immediately."],
+      "The Empress": ["Abundance · Creativity · Nurturing",
+        "Give yourself room to grow. Welcome beauty, care for what matters, and allow your ideas and relationships to flourish."],
+      "The Emperor": ["Structure · Leadership · Stability",
+        "Build a strong foundation for what you want. Clear boundaries and thoughtful plans can help you move forward."],
+      "The Hierophant": ["Tradition · Learning · Guidance",
+        "There is value in the wisdom passed down by others. Seek a trusted perspective while staying true to your own values."],
+      "The Lovers": ["Connection · Choice · Harmony",
+        "Choose what aligns with your heart and principles. Honest communication can deepen an important connection."],
+      "The Chariot": ["Determination · Direction · Willpower",
+        "You can make progress by bringing competing priorities into alignment. Choose your direction and keep moving steadily."],
+      "Strength": ["Courage · Patience · Compassion",
+        "True strength does not need to be loud. Meet a challenge with patience, kindness, and quiet confidence."],
+      "The Hermit": ["Reflection · Solitude · Insight",
+        "Step back from outside expectations. A little quiet time may help you discover what you truly need."],
+      "Wheel of Fortune": ["Cycles · Change · Opportunity",
+        "Life moves through changing seasons. Stay flexible and be ready to recognize an opportunity when circumstances shift."],
+      "Justice": ["Truth · Fairness · Accountability",
+        "Look at the situation honestly and consider the consequences of your choices. Clarity begins with fairness."],
+      "The Hanged Man": ["Pause · Perspective · Surrender",
+        "You may benefit from seeing things differently. A pause is not wasted time if it helps you understand what matters."],
+      "Death": ["Transformation · Endings · Renewal",
+        "An ending can make room for a new beginning. Release what has run its course and give change a chance."],
+      "Temperance": ["Balance · Patience · Healing",
+        "Seek the middle path. Small, thoughtful adjustments may bring more harmony than dramatic changes."],
+      "The Devil": ["Attachment · Temptation · Awareness",
+        "Notice the habits or expectations that make you feel stuck. Awareness gives you the opportunity to choose differently."],
+      "The Tower": ["Disruption · Revelation · Rebuilding",
+        "An unexpected change may reveal what was not built on solid ground. Give yourself time to rebuild with greater honesty."],
+      "The Star": ["Hope · Renewal · Inspiration",
+        "Let hope return little by little. Reconnect with your dreams and trust that healing and inspiration can grow over time."],
+      "The Moon": ["Dreams · Uncertainty · Intuition",
+        "Not everything is clear yet. Move patiently, check your assumptions, and listen to your feelings without mistaking fear for fact."],
+      "The Sun": ["Joy · Clarity · Vitality",
+        "Make room for warmth and celebration. Appreciate what is going well and let your confidence shine."],
+      "Judgement": ["Awakening · Reflection · Renewal",
+        "A moment of honest reflection can help you answer a new calling. Learn from the past without letting it define you."],
+      "The World": ["Completion · Integration · Achievement",
+        "A meaningful chapter may be reaching completion. Recognize how far you have come and prepare for what comes next."],
+
+      "Ace of Wands": ["Inspiration · Spark · Initiative",
+        "A fresh burst of creative energy is available to you. Follow the idea that makes you feel excited to begin."],
+      "Two of Wands": ["Planning · Vision · Possibility",
+        "Look beyond your familiar surroundings. A little planning now can help turn a bigger vision into a real direction."],
+      "Three of Wands": ["Expansion · Progress · Foresight",
+        "Your efforts may be opening new horizons. Stay patient and keep looking for ways to grow."],
+      "Four of Wands": ["Celebration · Belonging · Milestones",
+        "Pause to appreciate what you have built. Shared joy and supportive people deserve a place in your life."],
+      "Five of Wands": ["Competition · Friction · Challenge",
+        "Different opinions do not have to become lasting conflict. Use the tension to understand what needs to improve."],
+      "Six of Wands": ["Recognition · Confidence · Achievement",
+        "Allow yourself to acknowledge progress. Accept encouragement and let success motivate your next step."],
+      "Seven of Wands": ["Courage · Boundaries · Persistence",
+        "Stand by what matters to you. Protect your priorities while remaining open to a fair conversation."],
+      "Eight of Wands": ["Momentum · Movement · News",
+        "Things may begin moving faster. Keep your attention clear so you can respond to new developments."],
+      "Nine of Wands": ["Resilience · Caution · Endurance",
+        "You have already come through difficult moments. Rest when needed, keep wise boundaries, and take the next step."],
+      "Ten of Wands": ["Responsibility · Burden · Release",
+        "You may be carrying too much alone. Decide what is truly yours to do and where you can ask for support."],
+      "Page of Wands": ["Curiosity · Discovery · Enthusiasm",
+        "Let yourself explore an exciting idea. You do not need to know everything before taking the first small step."],
+      "Knight of Wands": ["Adventure · Boldness · Energy",
+        "Your enthusiasm can take you far when guided by purpose. Move boldly, but remember to consider where you are heading."],
+      "Queen of Wands": ["Confidence · Warmth · Creativity",
+        "Trust your individuality and let your natural warmth show. Your enthusiasm can encourage others as well as yourself."],
+      "King of Wands": ["Vision · Leadership · Enterprise",
+        "Think big, then act with intention. Strong leadership combines inspiration with responsibility."],
+
+      "Ace of Cups": ["Love · Openness · Emotional renewal",
+        "Make space for emotional renewal. A kind gesture, creative moment, or honest conversation can open your heart."],
+      "Two of Cups": ["Partnership · Mutuality · Connection",
+        "A connection grows through mutual respect. Give attention to relationships where listening and care flow both ways."],
+      "Three of Cups": ["Friendship · Community · Celebration",
+        "Reach out to the people who make life brighter. Shared laughter and support can restore your sense of belonging."],
+      "Four of Cups": ["Contemplation · Reassessment · Awareness",
+        "You may be overlooking something because your attention is elsewhere. Take a fresh look before deciding what you want."],
+      "Five of Cups": ["Grief · Perspective · Acceptance",
+        "It is okay to acknowledge disappointment. When you are ready, notice what remains and what may still be possible."],
+      "Six of Cups": ["Memories · Kindness · Simplicity",
+        "A memory or familiar connection may bring comfort. Enjoy the sweetness of the past while staying present today."],
+      "Seven of Cups": ["Choices · Imagination · Discernment",
+        "Many possibilities can feel overwhelming. Separate what is genuinely meaningful from what only looks appealing."],
+      "Eight of Cups": ["Departure · Searching · Growth",
+        "You may be ready to move on from something that no longer fulfills you. Let your deeper values guide the next step."],
+      "Nine of Cups": ["Contentment · Gratitude · Pleasure",
+        "Take a moment to appreciate what you have. Gratitude can help you recognize the joy already present in your life."],
+      "Ten of Cups": ["Harmony · Belonging · Fulfillment",
+        "Nurture the connections and shared values that make you feel at home. Emotional fulfillment grows through everyday care."],
+      "Page of Cups": ["Sensitivity · Creativity · Surprise",
+        "Stay open to a gentle surprise or a new creative idea. Curiosity and emotional honesty can reveal something lovely."],
+      "Knight of Cups": ["Romance · Idealism · Invitation",
+        "Follow what moves your heart, while keeping your feet on the ground. A sincere gesture can make a difference."],
+      "Queen of Cups": ["Empathy · Intuition · Compassion",
+        "Treat your feelings with care and extend kindness to others. Compassion also means honoring your own emotional needs."],
+      "King of Cups": ["Emotional balance · Wisdom · Calm",
+        "Respond rather than react. Emotional steadiness can help you handle a sensitive situation with understanding."],
+
+      "Ace of Swords": ["Clarity · Truth · Breakthrough",
+        "A clear idea or honest conversation may cut through confusion. Name the issue and focus on what is true."],
+      "Two of Swords": ["Indecision · Balance · Reflection",
+        "You may need more information before choosing. Give yourself space to weigh both sides without avoiding the decision."],
+      "Three of Swords": ["Heartache · Truth · Healing",
+        "Painful feelings deserve acknowledgment. Allow yourself to process them and seek the support that helps you heal."],
+      "Four of Swords": ["Rest · Recovery · Stillness",
+        "Give your mind a chance to recover. Rest is part of progress, not a reward you must earn."],
+      "Five of Swords": ["Conflict · Consequences · Perspective",
+        "Winning an argument is not always the same as solving a problem. Consider what outcome would truly serve you."],
+      "Six of Swords": ["Transition · Relief · Moving forward",
+        "You may be moving toward calmer waters. Take the lessons with you, but do not feel obliged to carry every burden."],
+      "Seven of Swords": ["Strategy · Discretion · Honesty",
+        "Think carefully about your next move and be honest about your motives. A thoughtful plan should not require self-deception."],
+      "Eight of Swords": ["Restriction · Mindset · New options",
+        "A situation may feel more limiting than it truly is. Identify one small choice that is still within your control."],
+      "Nine of Swords": ["Worry · Stress · Reassurance",
+        "An anxious thought is not necessarily a prediction. Share what is weighing on you and return to the facts you know."],
+      "Ten of Swords": ["Ending · Release · Recovery",
+        "A difficult chapter may be reaching its limit. Allow an ending to be an ending, and begin rebuilding at your own pace."],
+      "Page of Swords": ["Curiosity · Observation · Questions",
+        "Ask questions and stay alert to new information. A curious mind learns more when it listens as well as speaks."],
+      "Knight of Swords": ["Ambition · Speed · Directness",
+        "You may feel ready to act quickly. Keep your purpose clear and make sure your words and decisions reflect your values."],
+      "Queen of Swords": ["Discernment · Independence · Honesty",
+        "Look at the situation with a clear mind. Kindness and directness can coexist when you communicate your boundaries."],
+      "King of Swords": ["Reason · Ethics · Clear judgment",
+        "Use evidence, fairness, and careful reasoning. A sound decision considers both the facts and its impact on others."],
+
+      "Ace of Pentacles": ["Opportunity · Grounding · Potential",
+        "A practical opportunity may be worth nurturing. Begin with one realistic step and give it time to develop."],
+      "Two of Pentacles": ["Adaptability · Priorities · Balance",
+        "You may be balancing several responsibilities. Adjust your priorities and remember that flexibility is a strength."],
+      "Three of Pentacles": ["Teamwork · Craft · Learning",
+        "Good work grows through cooperation and practice. Invite useful feedback and appreciate the skills each person brings."],
+      "Four of Pentacles": ["Security · Possession · Control",
+        "Notice where you seek security and where fear may be making you hold too tightly. Stability also requires room to breathe."],
+      "Five of Pentacles": ["Hardship · Support · Perseverance",
+        "A difficult period does not mean you must face everything alone. Look for practical help and remember your own worth."],
+      "Six of Pentacles": ["Generosity · Exchange · Fairness",
+        "Give and receive with care. Healthy generosity respects both the needs of others and your own boundaries."],
+      "Seven of Pentacles": ["Patience · Investment · Assessment",
+        "Progress can take time to become visible. Review what you have planted and decide what deserves continued effort."],
+      "Eight of Pentacles": ["Practice · Dedication · Mastery",
+        "Consistent effort can build real skill. Focus on the next task and let small improvements add up."],
+      "Nine of Pentacles": ["Independence · Comfort · Accomplishment",
+        "Recognize the confidence that comes from your own effort. Enjoy what you have achieved and protect time for yourself."],
+      "Ten of Pentacles": ["Legacy · Stability · Shared prosperity",
+        "Think about what creates lasting security and belonging. Small choices today can support the future you want to build."],
+      "Page of Pentacles": ["Study · Practical goals · Opportunity",
+        "A useful new skill or idea deserves your attention. Stay curious and turn your interest into a practical plan."],
+      "Knight of Pentacles": ["Reliability · Routine · Persistence",
+        "Steady progress may be more valuable than quick results. Keep your promises to yourself and follow through patiently."],
+      "Queen of Pentacles": ["Care · Resourcefulness · Comfort",
+        "Create stability through practical care. Look after your environment, your resources, and the people who matter to you."],
+      "King of Pentacles": ["Security · Responsibility · Achievement",
+        "Build success with patience and good judgment. Lasting prosperity is strengthened by responsible choices and generosity."]
+    };
+
+    const imageElement = document.getElementById("cardImage");
+    const imageError = document.getElementById("imageError");
+    const nameElement = document.getElementById("cardName");
+    const keywordsElement = document.getElementById("keywords");
+    const meaningElement = document.getElementById("meaning");
+    const drawButton = document.getElementById("drawButton");
+
+    let cards = [];
+    let previousCardName = "";
+
+    function showCard(card) {
+      previousCardName = card.name;
+
+      nameElement.textContent = card.name;
+
+      const details = meanings[card.name] || [
+        "Reflection · Possibility · Growth",
+        "Take a quiet moment to reflect on what this card brings to mind. Let its symbolism inspire your own thoughtful choices."
+      ];
+
+      keywordsElement.textContent = details[0];
+      meaningElement.textContent = details[1];
+
+      imageError.classList.remove("visible");
+      imageElement.classList.remove("hidden");
+      imageElement.alt = card.name;
+
+      imageElement.onerror = () => {
+        imageElement.classList.add("hidden");
+        imageError.classList.add("visible");
+      };
+
+      imageElement.src = card.image;
+    }
+
+    async function drawCard() {
+      if (!cards.length) return;
+
+      let nextCard;
+
+      do {
+        nextCard = cards[Math.floor(Math.random() * cards.length)];
+      } while (cards.length > 1 && nextCard.name === previousCardName);
+
+      showCard(nextCard);
+    }
+
+    async function start() {
+      drawButton.disabled = true;
+      drawButton.textContent = "LOADING THE CARDS...";
+
+      try {
+        const response = await fetch(
+          "https://petaloverflow.github.io/tarot-api/cards.json"
+        );
+
+        if (!response.ok) throw new Error("Could not load the deck");
+
+        cards = await response.json();
+
+        if (!Array.isArray(cards) || cards.length !== 78) {
+          throw new Error("The deck did not load correctly");
+        }
+
+        drawCard();
+        drawButton.textContent = "✦ DRAW ANOTHER CARD ✦";
+        drawButton.disabled = false;
+      } catch (error) {
+        nameElement.textContent = "The deck is resting";
+        keywordsElement.textContent = "A moment of patience";
+        meaningElement.textContent =
+          "Please check your internet connection and refresh the page to load the tarot deck.";
+        drawButton.textContent = "TRY AGAIN";
+        drawButton.disabled = false;
+        drawButton.onclick = start;
+      }
+    }
+
+    drawButton.addEventListener("click", drawCard);
+    start();
+  </script>
+</body>
+</html>
