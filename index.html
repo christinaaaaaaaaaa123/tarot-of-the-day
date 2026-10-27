@@ -406,7 +406,10 @@
         imageError.classList.add("visible");
       };
 
-      imageElement.src = card.image;
+      imageElement.src = card.image.replace(
+  "https://petaloverflow.github.io/tarot-api/",
+  "https://raw.githubusercontent.com/sixseeds/tarot-api/master/"
+);
     }
 
     async function drawCard() {
@@ -427,7 +430,7 @@
 
       try {
         const response = await fetch(
-          "https://petaloverflow.github.io/tarot-api/cards.json"
+          "https://raw.githubusercontent.com/sixseeds/tarot-api/master/cards.json"
         );
 
         if (!response.ok) throw new Error("Could not load the deck");
